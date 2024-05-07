@@ -1,0 +1,64 @@
+<launch>
+    <!-- Arguments -->
+    <arg name="map_file" default="$(find robot_navigation_pkg)/maps/turtlebot3_stage_4.yaml"/>
+    <arg name="open_rviz" default="true"/>
+    <arg name="move_forward_only" default="false"/>
+  
+    <!-- Define position arguments for the URDF model -->
+  <arg name="x_pos" default="-2.0"/>
+  <arg name="y_pos" default="-0.5"/>
+  <arg name="z_pos" default="0.0"/>
+
+  <!-- these are the arguments you can pass this launch file, for example paused:=true -->
+  <arg name="paused" default="false"/>
+  <arg name="use_sim_time" default="true"/>
+  <arg name="gui" default="true"/>
+  <arg name="headless" default="false"/>
+  <arg name="debug" default="false"/>
+
+  <!-- We resume the logic in empty_world.launch -->
+  <include file="$(find gazebo_ros)/launch/empty_world.launch">
+    <arg name="world_name" value="$(find turtlebot3_gazebo)/worlds/turtlebot3_stage_4.world"/>
+    <arg name="paused" value="false"/>
+    <arg name="use_sim_time" value="true"/>
+    <arg name="gui" value="true"/>
+    <arg name="headless" value="false"/>
+    <arg name="debug" value="false"/>
+  </include>
+
+  <!-- urdf xml robot description loaded on the Parameter Server-->
+  <param name="robot_description" command="$(find xacro)/xacro '$(find mastering_ros_robot_description_pkg)/urdf/diff_wheeled_robot_with_laser.xacro'" /> 
+
+  <node name="joint_state_publisher" pkg="joint_state_publisher" type="joint_state_publisher" />
+
+  <!-- start robot state publisher -->
+  <node pkg="robot_state_publisher" type="robot_state_publisher" name="robot_state_publisher" output="screen">
+    <param name="publish_frequency" type="double" value="50.0" />
+  </node>
+
+  <!-- Run a python script to the send a service call to gazebo_ros to spawn a URDF robot -->
+  <node name="urdf_spawner" pkg="gazebo_ros" type="spawn_model" respawn="false" output="screen" args="-urdf -model diff_wheeled_robot -param robot_description -x $(arg x_pos) -y $(arg y_pos) -z $(arg z_pos)"/> 
+
+  
+    <!-- Map server -->
+    <node pkg="map_server" name="map_server" type="map_server" args="$(find robot_navigation_pkg)/maps/turtlebot3_stage_4_maps.yaml"/>
+    <arg name="initial_pose_x" default="0.0"/>
+    <arg name="initial_pose_y" default="0.0"/>
+    <arg name="initial_pose_a" default="0.0"/>
+    
+    <!-- AMCL -->
+    <include file="$(find robot_navigation_pkg)/launch/amcl.launch">
+    <arg name="initial_pose_x" value="s(arg initial_pose_x)"/>
+    <arg name="initial_pose_y" value="$(arg initial_pose_y)"/>
+    <arg name="initial_pose_a" value="S(arg initial_pose_a)"/>
+    </include>
+  
+    <!-- move_base -->
+    <include file="$(find robot_navigation_pkg)/launch/move_base.launch">
+      <arg name="move_forward_only" value="$(arg move_forward_only)"/>
+    </include>
+  
+    <!-- Launch visualization in rviz -->
+<!--<node name="rviz" pkg="rviz" type="rviz" args="-d $(find robot_navigation_pkg)/rviz/navigate.rviz" required="true" />-->
+  </launch>
+  

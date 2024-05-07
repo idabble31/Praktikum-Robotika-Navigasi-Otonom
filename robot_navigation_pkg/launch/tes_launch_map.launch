@@ -1,0 +1,7 @@
+<launch>
+    <!-- Arguments -->
+    <arg name="map_file" default="$(find robot_navigation_pkg)/maps/turtlebot3_stage_4_maps.yaml"/>
+
+    <!-- Start map_server -->
+    <node name="map_server" pkg="map_server" type="map_server" args="$(arg map_file)" />
+</launch>

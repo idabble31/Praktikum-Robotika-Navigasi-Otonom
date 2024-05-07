@@ -1,0 +1,4 @@
+scan_topic: /scan
+scan_time: 0.1
+range_min: 0.05
+range_max: 5.0

@@ -1,0 +1,6 @@
+global_frame: map
+planner_plugins: 
+  - {name: global_planner, type: "navfn/NavfnROS"}
+NavfnROS:
+  allow_unknown: true
+
